@@ -1,0 +1,25 @@
+<HTML>
+<BODY>
+<canvas width='500' height='500' id='lab01'>
+</canvas>
+
+<script>
+
+	var canvas = document.getElementById('lab01');
+	var ctx= canvas.getContext('2d');
+	var n=1;
+	
+
+	setInterval(function(){
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	for(let i=0; i<n; i++){
+		ctx.fillRect(100+Math.sin(i)*100, 100+Math.cos(i)*100, 1, 1);
+		}
+		n+=1;
+	}, 1);
+	
+</script>
+
+
+</BODY>
+</HTML>
