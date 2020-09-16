@@ -1,0 +1,38 @@
+<HTML>
+<BODY>
+<canvas width='1500' height='1200' id='lab02'>
+</canvas>
+
+<script>
+
+	var canvas = document.getElementById('lab02');
+	var ctx= canvas.getContext('2d');
+
+
+	let img = new Image;
+	img.crossOrigin = 'Photo';
+	img.src = 'https://im0-tub-ru.yandex.net/i?id=be88ba926dd6127170986cc6f1887d64&n=13';
+
+
+	img.onload = function() {
+	
+	ctx.drawImage(img, 0, 0, img.width, img.height);
+	
+	let imageData = ctx.getImageData(0, 0, img.width, img.height);
+	
+	for (var i = 0; i < imageData.data.length; i += 4) {
+	var chb = (imageData.data[i]+imageData.data[i+1]+imageData.data[i+2])/3;
+
+	imageData.data[i] = chb;
+	imageData.data[i+1] = chb;
+	imageData.data[i+2] = chb;
+	}
+	ctx.putImageData(imageData, img.width + 35, 0);
+	};
+
+
+</script>
+
+
+</BODY>
+</HTML>
