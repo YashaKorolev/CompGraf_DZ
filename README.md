@@ -1,1 +1,1 @@
-# CompGraf_DZ_1
+# CompGraf_DZ
