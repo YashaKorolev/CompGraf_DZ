@@ -1,0 +1,48 @@
+<HTML>
+<BODY>
+    <canvas width='500' height='500' id='lab03'>
+    </canvas>
+    <script>
+        var canvas = document.getElementById("lab03");
+        element = canvas.getContext('2d');
+        function setPixel(x,y){
+            var id = element.createImageData(1,1); 
+            var d  = id.data; 
+            d[0]   = 0;
+            d[1]   = 0;
+            d[2]   = 0;
+            d[3]   = 255;
+            element.putImageData(id,x,y)
+    }
+        function line(x0, y0, x1, y1) {
+            var dx = Math.abs(x1 - x0);
+            var dy = Math.abs(y1 - y0);
+            var sx = (x0 < x1) ? 1 : -1;
+            var sy = (y0 < y1) ? 1 : -1;
+            var err = dx - dy;
+
+            while(true) {
+                setPixel(x0, y0); 
+
+                if ((x0 === x1) && (y0 === y1)) break;
+                var e2 = 2*err;
+                if (e2 > -dy) { err -= dy; x0  += sx; }
+                if (e2 < dx) { err += dx; y0  += sy; }
+            }
+}
+        var flag = 0;
+            canvas.addEventListener("click", function(event){
+                if(!flag){
+                    x0 = event.offsetX;
+                    y0 = event.offsetY;
+                    flag = 1;
+                } else{
+                    x1 = event.offsetX;
+                    y1 = event.offsetY;
+                    line(x0, y0 ,x1 , y1);
+                    flag = 0;
+                }
+            });
+</script>
+</BODY>
+</HTML>
