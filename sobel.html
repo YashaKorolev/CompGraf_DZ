@@ -1,0 +1,117 @@
+<HTML>
+<BODY>
+<canvas width='1500' height='1200' id='lab02'>
+</canvas>
+
+<script>
+
+    var canvas = document.getElementById('lab02');
+    var ctx= canvas.getContext('2d');
+
+
+    let img = new Image;
+    img.crossOrigin = 'Photo';
+    img.src = 'https://im0-tub-ru.yandex.net/i?id=be88ba926dd6127170986cc6f1887d64&n=13';
+
+
+
+    img.onload = function() {
+
+        ctx.drawImage(img, 0, 0, img.width, img.height);
+
+        let imageData = ctx.getImageData(0, 0, img.width, img.height);
+
+        var width = imageData.width;
+        var height = imageData.height;
+
+
+        var kernelX = [
+            [-1,0,1],
+            [-2,0,2],
+            [-1,0,1]
+        ];
+
+
+        var kernelY = [
+            [-1,-2,-1],
+            [0,0,0],
+            [1,2,1]
+        ];
+
+        var sobelData = [];  
+        var grayscaleData = [];  
+
+         
+        function bindPixelAt(data) {
+            return function(x, y, i) {
+                i = i || 0;
+                return data[((width * y) + x) * 4 + i];
+            };
+        }
+
+        var data = imageData.data;
+        var pixelAt = bindPixelAt(data); 
+        var x, y;
+
+        
+        for (y = 0; y < height; y++) {
+            for (x = 0; x < width; x++) {
+                var r = pixelAt(x, y, 0);
+                var g = pixelAt(x, y, 1);
+                var b = pixelAt(x, y, 2);
+
+                var avg = (r + g + b) / 3;
+                grayscaleData.push(avg, avg, avg, 255);
+            }
+        }
+
+        pixelAt = bindPixelAt(grayscaleData); 
+
+
+        for (y = 0; y < height; y++) {
+            for (x = 0; x < width; x++) {
+                var pixelX = (
+                    (kernelX[0][0] * pixelAt(x - 1, y - 1)) +
+                    (kernelX[0][1] * pixelAt(x, y - 1)) +
+                    (kernelX[0][2] * pixelAt(x + 1, y - 1)) +
+                    (kernelX[1][0] * pixelAt(x - 1, y)) +
+                    (kernelX[1][1] * pixelAt(x, y)) +
+                    (kernelX[1][2] * pixelAt(x + 1, y)) +
+                    (kernelX[2][0] * pixelAt(x - 1, y + 1)) +
+                    (kernelX[2][1] * pixelAt(x, y + 1)) +
+                    (kernelX[2][2] * pixelAt(x + 1, y + 1))
+                );
+
+                var pixelY = (
+                    (kernelY[0][0] * pixelAt(x - 1, y - 1)) +
+                    (kernelY[0][1] * pixelAt(x, y - 1)) +
+                    (kernelY[0][2] * pixelAt(x + 1, y - 1)) +
+                    (kernelY[1][0] * pixelAt(x - 1, y)) +
+                    (kernelY[1][1] * pixelAt(x, y)) +
+                    (kernelY[1][2] * pixelAt(x + 1, y)) +
+                    (kernelY[2][0] * pixelAt(x - 1, y + 1)) +
+                    (kernelY[2][1] * pixelAt(x, y + 1)) +
+                    (kernelY[2][2] * pixelAt(x + 1, y + 1))
+                );
+
+                var magnitude = Math.sqrt((pixelX * pixelX) + (pixelY * pixelY));
+
+                sobelData.push(magnitude, magnitude, magnitude, 255);
+            }
+        }
+
+        
+        for (var i = 0; i < imageData.data.length; i++) {
+                imageData.data[i] = sobelData[i];
+        }
+
+        ctx.putImageData(imageData, img.width + 35, 0);
+    };
+
+
+</script>
+
+
+</BODY>
+</HTML>
+
