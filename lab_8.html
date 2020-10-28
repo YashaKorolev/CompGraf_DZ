@@ -1,0 +1,154 @@
+<HTML>
+<BODY>
+    <canvas width='500' height='500' id='lab08'>
+    </canvas>
+    <script>
+
+        function print(x0,y0,x1,y1, color) {
+        let dy = Math.abs(y1-y0);
+        let dx = Math.abs(x1-x0);
+
+        let dmax = Math.max(dx,dy);
+        let dmin = Math.min(dx,dy);
+
+        var xdir = (x0 < x1) ? 1 : -1;
+        var ydir = (y0 < y1) ? 1 : -1;
+
+        let pn = 0;
+        let n = 2*dmin;
+
+        ctx.fillStyle = color;
+        if(dy <= dx) {
+        let y = y0;
+        for(let x=x0; x*xdir<=x1*xdir;x+=xdir) {
+        ctx.fillRect(x,y,1,1);
+        pn = pn+n;
+        if(pn > dmax){
+        y += ydir;
+        pn = pn - 2*dmax;
+        }
+        }
+        }
+        else {
+        let x = x0;
+        for(let y=y0; y*ydir<=y1*ydir;y+=ydir) {
+        ctx.fillRect(x,y,1,1);
+        pn = pn+n;
+        if(pn > dmax){
+        x += xdir;
+        pn = pn - 2*dmax;
+        }
+        }
+        }
+        }
+        function Line(a, b) {
+        this.x0 = a.x;
+        this.x1 = b.x;
+        this.y0 = a.y;
+        this.y1 = b.y;
+        this.m = (this.y1 - this.y0) / (this.x1 - this.x0);
+        }
+
+        var canvas;
+        var ctx;
+        var points = [];
+        var lines = [];
+        var piramid;
+        var stand = 1;
+
+        var canvas = document.getElementById("lab08");
+        var ctx = canvas.getContext("2d");
+
+        canvas.addEventListener("click",function(event) {
+        if (stand==1) {
+        addPoint(50, 50, 10, 10, 0, 1);
+        stand = 0;
+        }
+        });
+
+        function fillSquare(color) {
+
+        var minY = points[0].y;
+        var maxY = points[0].y;
+        for (var i = 0; i < points.length; i++) {
+        var temp = points[i].y;
+        if (points[i].y < minY)
+        minY = points[i].y;
+        else if (points[i].y > maxY)
+        maxY = points[i].y;
+        }
+
+        for (var y = minY; y < maxY; y++) {
+        var crossing = Crossing(y);
+        for (var i = 1; i < crossing.length; i += 2) {
+        print(crossing[i - 1], y, crossing[i], y, color)
+        }
+        }
+        }
+
+        function Crossing(y) {
+        var cross = [];
+        for (var i = 0; i < lines.length; i++) {
+        var l = lines[i];
+        if ((y >= l.y0 && y < l.y1) || (y >= l.y1 && y < l.y0))
+        cross.push(Math.floor( (l.x1 - l.x0) / (l.y1 - l.y0) * (y - l.y0) + l.x0));
+        }
+        for (var i = 0; i < cross.length; i++)
+        for (var j = i; j < cross.length; j++) {
+        if (cross[i]>cross[j]) {
+        var temp =cross[i];
+        cross[i]=cross[j];
+        cross[j]=temp;
+        }
+        }
+
+        return  cross;
+        }
+
+        function closePoly(){
+        points.push(points[0])
+        for (var i = 1; i < points.length; i++) {
+        lines.push(new Line(points[i - 1], points[i]));
+        }
+
+        for(var j = 0; j < points.length - 1; j++){
+        print(points[j].x, points[j].y, points[j + 1].x, points[j + 1].y, "#000000")
+        }
+        var col = '#'+(0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6);
+        fillSquare(col);
+
+        }
+
+        function addPoint(width, height, center_x, center_y, x, y){
+        for(var i = 0; i < piramid.e.length; i++){
+        for(var j = 0; j < piramid.e[i].length; j++){
+        points.push({ x: center_x + width * piramid.v[piramid.e[i][j] - 1][x],
+        y: center_y + height * piramid.v[piramid.e[i][j] - 1][y]});
+        }
+        closePoly();
+        }
+        }
+
+        var piramid = {
+         v: [
+            [0, 0],
+            [0, 0],
+            [1, 0],
+            [1, 1],
+            [0, 1],
+            [0.5, 0.5],
+        ],
+        e: [
+            [5, 2, 3],
+            [4, 5, 3],
+            [6, 3, 2],
+            [5, 6, 2],
+            [4, 6, 5],
+            [6, 4, 3],
+        ],
+        };
+
+    </script>
+
+</BODY>
+</HTML>

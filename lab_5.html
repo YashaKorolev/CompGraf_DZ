@@ -1,0 +1,342 @@
+<HTML>
+<BODY>
+    <canvas height='2000' , width='2000' , id='lab05'>
+    </canvas>
+    <script>
+        class Dot
+        {
+        x = 0.0
+        y = 0.0
+
+        constructor(x = 0.0, y = 0.0) {
+        this.x = x;
+        this.y = y;
+        }
+        incr(a) {
+        this.x *= a;
+        this.y *= a;
+        }
+
+        coord(x,y) {
+        this.x = x;
+        this.y = y;
+        }
+
+        dots(dot) {
+        this.x = dot.x;
+        this.y = dot.y;
+        }
+
+        
+
+        }
+
+        function scal(dot0, dot1) {
+        return ((dot0.x*dot1.x) + (dot0.y*dot1.y));
+        }
+
+        function vec_mines(dot0 = new Dot(),dot1 = new Dot()) {
+        return new Dot((dot0.x-dot1.x),(dot0.y-dot1.y))
+        }
+
+        function  add(dot0 = new Dot(),dot1 = new Dot()) {
+        return new Dot((dot0.x+dot1.x),(dot0.y+dot1.y))
+        } 
+        
+        class Line
+        {
+        tStart = new Dot()    
+        tEnd = new Dot()  
+        t1 = 0
+        t2 = 1
+        norm = new Dot() 
+        vec = new Dot()
+        vec1 = new Dot()  
+
+        constructor(begin = new Dot(), end = new Dot()) {
+
+        this.tStart.dots(begin);
+        this.tEnd.dots(end);
+
+        var inter = vec_mines(end, begin);
+
+        this.vec.coord(inter.x,inter.y);
+        this.vec1.coord((inter.x/Math.sqrt(Math.pow(inter.x,2) + Math.pow(inter.y,2))),
+        (inter.y/Math.sqrt(Math.pow(inter.x,2) + Math.pow(inter.y,2))));
+        }
+
+        coord(x0,y0,x1,y1) {
+
+        this.tStart.coord(x0,y0);
+        this.tEnd.coord(x1,y1);
+
+        var inter = vec_mines(this.tEnd, this.tStart);
+        this.vec = inter;
+        this.vec1.coord((inter.x/Math.sqrt(Math.pow(inter.x,2) + Math.pow(inter.y,2))),
+        (inter.y/Math.sqrt(Math.pow(inter.x,2) + Math.pow(inter.y,2))));
+        }
+        }   
+        
+        function print_line(ctx,x0,y0,x1,y1) {
+
+        let dy = Math.abs(y1-y0);
+        let dx = Math.abs(x1-x0);
+
+        let dmax = Math.max(dx,dy);
+        let dmin = Math.min(dx,dy);
+
+        let xdir = 1;
+        let ydir = 1;
+
+        if(x1<x0) xdir = -1;
+        if(y1<y0) ydir = -1;
+
+        let ep = 0;
+        let m = 2*dmin;
+
+        if(dy <= dx)
+        {
+        let y = y0;
+        for(let x=x0; x*xdir<=x1*xdir;x+=xdir)
+        {
+        ctx.fillRect(x,y,1*scale,1*scale);
+        ep +=m;
+        if(ep > dmax)
+        {
+        y += ydir;
+        ep -= 2*dmax;
+        }
+        }
+        }
+        else
+        {
+        let x = x0;
+        for(let y=y0; y*ydir<=y1*ydir;y+=ydir)
+        {
+        ctx.fillRect(x,y,1*scale,1*scale);
+        ep +=m;
+        if(ep > dmax)
+        {
+        x += xdir;
+        ep -= 2*dmax;
+        }
+        }
+        }
+        }     
+
+        class Figure
+        {
+        fdot = new Dot()
+        ldot = new Dot()
+        first = false
+        last = false
+        edge = []
+        dedge_ind = 0;
+
+
+        compute_normals() {
+
+        for(let index = 0; index < this.dedge_ind;index++)
+        {
+
+        let n = new Dot((-1 * (this.edge[index].vec1.y/(this.edge[index].vec1.x + 0.000001))), 1)
+        let vec;
+
+        if (index == (this.dedge_ind - 1))
+        {
+        vec = new Line(this.edge[index].tStart, this.edge[0].tEnd);
+        }
+        else
+        {
+        vec = new Line(this.edge[index].tStart,this.edge[index + 1].tEnd);
+        }
+
+        if (!(scal(n,vec.vec) > 0))
+        {
+        n.incr(-1);
+        }
+        this.edge[index].norm = n;
+
+        }
+        }
+        
+        print_figure(ctx,x,y) {
+        if(!this.last)
+        {
+        if(!this.first)
+        {
+        this.fdot.x = x;
+        this.fdot.y = y;
+
+        this.ldot.x = this.fdot.x;
+        this.ldot.y = this.fdot.y;
+
+        this.first = true;
+        }
+        else
+        {
+
+        if ((Math.abs(x - this.fdot.x) < 25) && (Math.abs(y - this.fdot.y) < 25))
+        {
+        print_line(ctx,this.ldot.x,this.ldot.y,this.fdot.x,this.fdot.y);
+
+        this.edge.push(new Line(this.ldot,this.fdot));
+        this.last = true;
+
+        this.ldot.x = this.fdot.x;
+        this.ldot.y = this.fdot.y;
+
+        this.dedge_ind++;
+
+        this.check();
+        this.compute_normals();
+        }
+        else
+        {
+        print_line(ctx,this.ldot.x,this.ldot.y,x,y);
+
+        this.edge.push(new Line(this.ldot,new Dot(x,y)));
+
+        this.ldot.x = x;
+        this.ldot.y = y;
+        this.dedge_ind++;
+        }
+        }
+        }
+
+        }
+  
+        check() {
+
+        let z = ((this.edge[this.dedge_ind - 1].tEnd.x -
+        this.edge[this.dedge_ind - 1].tStart.x)*
+        ((this.edge[0].tEnd.y - this.edge[0].tStart.y))) -
+        ((this.edge[this.dedge_ind - 1].tEnd.y -
+        this.edge[this.dedge_ind - 1].tStart.y)*
+        ((this.edge[0].tEnd.x - this.edge[0].tStart.x)));
+
+        let zi = 0;
+
+        for(let index = 1; index < this.dedge_ind;index++)
+        {
+        zi = ((this.edge[index - 1].tEnd.x - this.edge[index - 1].tStart.x) *
+        ((this.edge[index].tEnd.y - this.edge[index].tStart.y))) -
+        ((this.edge[index - 1].tEnd.y - this.edge[index - 1].tStart.y)*
+        ((this.edge[index].tEnd.x - this.edge[index].tStart.x)));
+
+        if(zi*z < 0)
+        {
+        location.reload();
+        return false;
+        }
+        }
+        return true;
+        }
+
+
+
+        end_figure(ctx) {
+
+        if(!this.last)
+        {
+        print_line(ctx,this.ldot._x,this.ldot._y,x,y);
+
+        this.edge.push(new Line(this.ldot,this.fdot));
+        this.last = true;
+
+        this.ldot.x = this.fdot.x;
+        this.ldot.y = this.fdot.y;
+
+        this.dedge_ind++;
+
+        this.check();
+        this.compute_normals();
+        }
+        }
+
+        }
+
+
+        var canvas = document.getElementById('lab05');
+        var ctx = canvas.getContext('2d');
+
+        let x0 = 10;
+        let y0 = 10;
+        let x1 = 160;
+        let y1 = 60;
+        let CurrentLine = new Line();
+
+        let scale = 2;
+
+
+
+        let point_index = 0;
+        let poly = new Figure();
+        canvas.addEventListener('click',function(e){
+        if (!poly.last)
+        {
+        poly.print_figure(ctx,e.offsetX,e.offsetY);
+        }
+        else
+        {
+        if (point_index == 0)
+        {
+        x0 = e.offsetX;
+        y0 = e.offsetY;
+        point_index = 1;
+        }
+        else
+        {
+        x1 = e.offsetX;
+        y1 = e.offsetY;
+        point_index = 0;
+
+        CurrentLine.coord(x0,y0,x1,y1);
+
+        for(let index = 0; index < poly.dedge_ind;index++)
+        {
+        let Pi = scal(poly.edge[index].norm, CurrentLine.vec);
+        let fi = poly.edge[index].tEnd;
+        let wi = vec_mines(CurrentLine.tStart,fi);
+        let Qi = scal(poly.edge[index].norm,wi);
+
+        let t = -1*(Qi/Pi);
+
+        if(Pi < 0)
+        {
+        if(t > CurrentLine.t1 && t < CurrentLine.t2)
+        {
+        CurrentLine.t2 = t;
+        }
+        else
+        {
+        continue;
+        }
+        }
+        else if (Pi > 0)
+        {
+        if(t > CurrentLine.t1 && t < CurrentLine.t2)
+        {
+        CurrentLine.t1 = t;
+        }
+        }
+        }
+
+        let dotInter = add(CurrentLine.vec);
+        dotInter.incr(CurrentLine.t1)
+        let tStart = add(CurrentLine.tStart,dotInter);
+
+        dotInter = add(CurrentLine.vec);
+        dotInter.incr(CurrentLine.t2)
+        let tEnd = add(CurrentLine.tStart,dotInter);
+        CurrentLine = new Line(tStart,tEnd);
+
+        ctx.fillStyle="#f41919";
+        print_line(ctx,CurrentLine.tStart.x,CurrentLine.tStart.y,CurrentLine.tEnd.x,CurrentLine.tEnd.y);
+        ctx.fillStyle="#000000";
+        }
+        }
+        });
+    </script>
+</BODY>
+</HTML>

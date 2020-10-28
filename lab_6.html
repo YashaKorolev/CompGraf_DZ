@@ -1,0 +1,143 @@
+<HTML>
+<BODY>
+    <canvas width='1500' height='1500' id="lab06">
+    </canvas>
+    <script>
+        class Dot {
+        constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        }
+        get_beside() {
+        var beside = [];
+
+        beside[0] = new Dot(this.x, this.y - 1);
+        beside[1] = new Dot(this.x - 1, this.y);
+        beside[2] = new Dot(this.x, this.y + 1);
+        beside[3] = new Dot(this.x + 1, this.y);
+
+        return beside;
+        }
+        };
+        class Container {
+        constructor() {
+        this.count = 0;
+        this.stock = {};
+        }
+        push(data) {
+        this.count++;
+        this.stock[this.count] = data;
+        };
+
+        pop() {
+        var pop_data;
+
+        if (this.count) {
+        pop_data = this.stock[this.count];
+
+        delete this.stock[this.count];
+        this.count--;
+
+        return pop_data;
+        }
+        };
+
+        not_empty() {
+        return this.count != 0;
+        }
+        }
+        var x0 = 0;
+        var y0 = 0; 
+        var dots_figure = [];
+        var ind_fig_dot = 0;
+        var stand = true;
+        var view = true;
+        var canvas = document.getElementById('lab06');
+        var ctx = canvas.getContext('2d');
+        function print_line(x0, y0, x1, y1) {
+        var x = x0;
+        var y = y0;
+        var x_shift = 1;
+        var y_shift = 1;
+        if (x0 > x1)
+        x_shift = -1;
+        if (y0 > y1)
+        y_shift = -1;
+
+        var dx = Math.abs(x1 - x0);
+        var dy = Math.abs(y1 - y0);
+        var e = dx - dy;
+
+        var num_dot = 0;
+        if (dx > dy)
+        num_dot = dx;
+        else
+        num_dot = dy;
+
+        while (num_dot > 0) {
+        num_dot -= 1;
+        ctx.fillRect(x, y, 2, 2);
+        if (dy >= -2 * e) {
+        x += x_shift;
+        e -= dy;
+        }
+        if (dx >= 2 * e) {
+        y += y_shift;
+        e += dx;
+        }
+        }
+        }
+        function fillArea(x, y) {
+        ctx.fillStyle = "#000000";
+        var contain = new Container();
+        var current_dot = new Dot(x, y);
+        contain.push(current_dot);
+        while (contain.not_empty()) {
+        current_dot = contain.pop();
+        if (ctx.getImageData(current_dot.x, current_dot.y, 1, 1).data[3] != 255) {
+        ctx.fillRect(current_dot.x, current_dot.y, 1, 1);
+        beside = current_dot.get_beside()
+        beside.forEach(bes => {
+        contain.push(bes);
+        });
+        }
+        }
+        }
+        document.addEventListener('keydown', function (event) {
+        if (view == true && ind_fig_dot > 1) {
+        view = false;
+        stand = true;
+        print_line(dots_figure[0].x, dots_figure[0].y, dots_figure[ind_fig_dot - 1].x, dots_figure[ind_fig_dot - 1].y); 
+        }
+        });
+        canvas.addEventListener('click', (event) => {
+        if (view==true) {
+        if (stand==true) {
+        if (event.offsetX > 0 && event.offsetX < canvas.width)
+        if (event.offsetY > 0 && event.offsetY < canvas.height) {
+
+        dots_figure[ind_fig_dot] = new Dot(event.offsetX, event.offsetY);
+        ind_fig_dot++;
+        x0 = event.offsetX;
+        y0 = event.offsetY;
+        ctx.fillRect(x0, y0, 1, 1);
+        stand = false;
+        }
+        }
+        else {
+        dots_figure[ind_fig_dot] = new Dot(event.offsetX, event.offsetY);
+        ind_fig_dot++;
+
+        ctx.fillRect(event.offsetX, event.offsetY, 1, 1);
+        print_line(x0, y0, event.offsetX, event.offsetY);
+        x0 = event.offsetX;
+        y0 = event.offsetY;
+        }
+        }
+        else {
+        fillArea(event.offsetX, event.offsetY);
+        }
+        }); 
+    </script>
+</BODY>
+</HTML>
